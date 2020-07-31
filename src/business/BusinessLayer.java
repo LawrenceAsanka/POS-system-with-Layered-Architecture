@@ -26,115 +26,170 @@ import util.OrderTM;
 public class BusinessLayer {
 
   public static String getNewCustomerId() {
-    CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
-    String lastCustomerId = customerDAO.getLastCustomerId();
-    if (lastCustomerId == null) {
-      return "C001";
-    } else {
-      int maxId = Integer.parseInt(lastCustomerId.replace("C", ""));
-      maxId = maxId + 1;
-      String id = "";
-      if (maxId < 10) {
-        id = "C00" + maxId;
-      } else if (maxId < 100) {
-        id = "C0" + maxId;
+    try {
+      CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
+      String lastCustomerId = customerDAO.getLastCustomerId();
+      if (lastCustomerId == null) {
+        return "C001";
       } else {
-        id = "C" + maxId;
+        int maxId = Integer.parseInt(lastCustomerId.replace("C", ""));
+        maxId = maxId + 1;
+        String id = "";
+        if (maxId < 10) {
+          id = "C00" + maxId;
+        } else if (maxId < 100) {
+          id = "C0" + maxId;
+        } else {
+          id = "C" + maxId;
+        }
+        return id;
       }
-      return id;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
     }
   }
 
   public static String getNewItemCode() {
-    ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
-    String lastItemCode = itemDAO.getLastItemCode();
-    if (lastItemCode == null) {
-      return "I001";
-    } else {
-      int maxId = Integer.parseInt(lastItemCode.replace("I", ""));
-      maxId = maxId + 1;
-      String id = "";
-      if (maxId < 10) {
-        id = "I00" + maxId;
-      } else if (maxId < 100) {
-        id = "I0" + maxId;
+    try {
+      ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+      String lastItemCode = itemDAO.getLastItemCode();
+      if (lastItemCode == null) {
+        return "I001";
       } else {
-        id = "I" + maxId;
+        int maxId = Integer.parseInt(lastItemCode.replace("I", ""));
+        maxId = maxId + 1;
+        String id = "";
+        if (maxId < 10) {
+          id = "I00" + maxId;
+        } else if (maxId < 100) {
+          id = "I0" + maxId;
+        } else {
+          id = "I" + maxId;
+        }
+        return id;
       }
-      return id;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
     }
   }
 
   public static String getNewOrderId() {
-    OrderDAO orderDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER);
-    String lastOrderId = orderDAO.getLastOrderId();
-    if (lastOrderId == null) {
-      return "OD001";
-    } else {
-      int maxId = Integer.parseInt(lastOrderId.replace("OD", ""));
-      maxId = maxId + 1;
-      String id = "";
-      if (maxId < 10) {
-        id = "OD00" + maxId;
-      } else if (maxId < 100) {
-        id = "OD0" + maxId;
+    try {
+      OrderDAO orderDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER);
+      String lastOrderId = orderDAO.getLastOrderId();
+      if (lastOrderId == null) {
+        return "OD001";
       } else {
-        id = "OD" + maxId;
+        int maxId = Integer.parseInt(lastOrderId.replace("OD", ""));
+        maxId = maxId + 1;
+        String id = "";
+        if (maxId < 10) {
+          id = "OD00" + maxId;
+        } else if (maxId < 100) {
+          id = "OD0" + maxId;
+        } else {
+          id = "OD" + maxId;
+        }
+        return id;
       }
-      return id;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
     }
   }
 
   public static List<CustomerTM> getAllCustomers() {
-    CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
-    List<Customer> allCustomers = customerDAO.findAll();
-    List<CustomerTM> customers = new ArrayList<>();
-    for (Customer customer : allCustomers) {
-      customers.add(new CustomerTM(customer.getId(), customer.getName(), customer.getAddress()));
+    try {
+      CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
+      List<Customer> allCustomers = customerDAO.findAll();
+      List<CustomerTM> customers = new ArrayList<>();
+      for (Customer customer : allCustomers) {
+        customers.add(new CustomerTM(customer.getId(), customer.getName(), customer.getAddress()));
+      }
+      return customers;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
     }
-    return customers;
   }
 
   public static boolean saveCustomer(String id, String name, String address) {
-    CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
-    return customerDAO.save(new Customer(id, name, address));
+    try {
+      CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
+      return customerDAO.save(new Customer(id, name, address));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   public static boolean deleteCustomer(String customerId) {
-    CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
-    return customerDAO.delete(customerId);
+    try {
+      CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
+      return customerDAO.delete(customerId);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   public static boolean updateCustomer(String name, String address, String customerId) {
-    CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
-    return customerDAO.update(new Customer(customerId, name, address));
+    try {
+      CustomerDAO customerDAO = DAOFactory.getInstance().getDAO(DAOType.CUSTOMER);
+      return customerDAO.update(new Customer(customerId, name, address));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   public static List<ItemTM> getAllItems() {
-    ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
-    List<Item> allItems = itemDAO.findAll();
-    List<ItemTM> items = new ArrayList<>();
-    for (Item item : allItems) {
-      items.add(new ItemTM(item.getCode(), item.getDescription(), item.getQtyOnHand(),
-          item.getUnitPrice().doubleValue()));
+    try {
+      ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+      List<Item> allItems = itemDAO.findAll();
+      List<ItemTM> items = new ArrayList<>();
+      for (Item item : allItems) {
+        items.add(new ItemTM(item.getCode(), item.getDescription(), item.getQtyOnHand(),
+            item.getUnitPrice().doubleValue()));
+      }
+      return items;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
     }
-    return items;
   }
 
   public static boolean saveItem(String code, String description, int qtyOnHand, double unitPrice) {
-    ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
-    return itemDAO.save(new Item(code, description, BigDecimal.valueOf(unitPrice), qtyOnHand));
+    try {
+      ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+      return itemDAO.save(new Item(code, description, BigDecimal.valueOf(unitPrice), qtyOnHand));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   public static boolean deleteItem(String itemCode) {
-    ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
-    return itemDAO.delete(itemCode);
+    try {
+      ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+      return itemDAO.delete(itemCode);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   public static boolean updateItem(String description, int qtyOnHand, double unitPrice, String itemCode) {
-    ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
-    return itemDAO.update(new Item(itemCode, description,
-        BigDecimal.valueOf(unitPrice), qtyOnHand));
+    try {
+      ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+      return itemDAO.update(new Item(itemCode, description,
+          BigDecimal.valueOf(unitPrice), qtyOnHand));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
 

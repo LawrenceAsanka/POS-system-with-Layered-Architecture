@@ -8,7 +8,7 @@ import java.util.List;
 
 class CrudUtilTest {
 
-  public static void main(String[] args) throws SQLException {
+  public static void main(String[] args) throws Exception {
   /*  List<String> params = new ArrayList<>();
     params.add("C001");
     params.add("Kasun");*/

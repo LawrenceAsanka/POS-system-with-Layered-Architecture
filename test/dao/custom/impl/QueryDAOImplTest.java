@@ -12,7 +12,7 @@ import entity.CustomEntity;
 
 class QueryDAOImplTest {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception{
     QueryDAO queryDAO = DAOFactory.getInstance().getDAO(DAOType.QUERY);
  /*   CustomEntity ce = queryDAO.getOrderDetail("OD001");
     System.out.println(ce.getCustomerName());

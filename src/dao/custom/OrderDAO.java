@@ -7,6 +7,6 @@ import dao.SuperDAO;
 import entity.Order;
 
 public interface OrderDAO extends CrudDAO<Order,String> {
-  String getLastOrderId();
+  String getLastOrderId() throws Exception;
 
 }

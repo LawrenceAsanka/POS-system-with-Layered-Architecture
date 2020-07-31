@@ -2,7 +2,7 @@ package entity;
 
 import java.io.Serializable;
 
-public class OrderDetailPK implements SuperEntity {
+public class OrderDetailPK implements Serializable {
 
     private String orderId;
     private String itemCode;

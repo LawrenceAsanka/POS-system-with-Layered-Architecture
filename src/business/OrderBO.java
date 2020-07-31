@@ -20,7 +20,7 @@ import util.OrderTM;
 
 public class OrderBO {
 
-  public static String getNewOrderId() {
+  public  String getNewOrderId() {
     try {
       OrderDAO orderDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER);
       String lastOrderId = orderDAO.getLastOrderId();
@@ -46,7 +46,7 @@ public class OrderBO {
   }
 
 
-  public static boolean placeOrder(OrderTM order, List<OrderDetailTM> orderDetails) {
+  public  boolean placeOrder(OrderTM order, List<OrderDetailTM> orderDetails) {
     Connection connection = DBConnection.getInstance().getConnection();
     try {
       connection.setAutoCommit(false);

@@ -12,7 +12,7 @@ import util.ItemTM;
 
 public class ItemBO {
 
-  public static String getNewItemCode() {
+  public  String getNewItemCode() {
     try {
       ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
       String lastItemCode = itemDAO.getLastItemCode();
@@ -37,7 +37,7 @@ public class ItemBO {
     }
   }
 
-  public static List<ItemTM> getAllItems() {
+  public  List<ItemTM> getAllItems() {
     try {
       ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
       List<Item> allItems = itemDAO.findAll();
@@ -53,7 +53,7 @@ public class ItemBO {
     }
   }
 
-  public static boolean saveItem(String code, String description, int qtyOnHand, double unitPrice) {
+  public  boolean saveItem(String code, String description, int qtyOnHand, double unitPrice) {
     try {
       ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
       return itemDAO.save(new Item(code, description, BigDecimal.valueOf(unitPrice), qtyOnHand));
@@ -63,7 +63,7 @@ public class ItemBO {
     }
   }
 
-  public static boolean deleteItem(String itemCode) {
+  public  boolean deleteItem(String itemCode) {
     try {
       ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
       return itemDAO.delete(itemCode);
@@ -73,7 +73,7 @@ public class ItemBO {
     }
   }
 
-  public static boolean updateItem(String description, int qtyOnHand, double unitPrice, String itemCode) {
+  public  boolean updateItem(String description, int qtyOnHand, double unitPrice, String itemCode) {
     try {
       ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
       return itemDAO.update(new Item(itemCode, description,

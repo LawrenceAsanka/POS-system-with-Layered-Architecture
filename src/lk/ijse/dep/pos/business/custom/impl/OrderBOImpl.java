@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import lk.ijse.dep.pos.business.custom.OrderBO;
@@ -12,7 +13,9 @@ import lk.ijse.dep.pos.dao.DAOType;
 import lk.ijse.dep.pos.dao.custom.ItemDAO;
 import lk.ijse.dep.pos.dao.custom.OrderDAO;
 import lk.ijse.dep.pos.dao.custom.OrderDetailDAO;
+import lk.ijse.dep.pos.dao.custom.QueryDAO;
 import lk.ijse.dep.pos.db.DBConnection;
+import lk.ijse.dep.pos.entity.CustomEntity;
 import lk.ijse.dep.pos.entity.Item;
 import lk.ijse.dep.pos.entity.Order;
 import lk.ijse.dep.pos.entity.OrderDetail;
@@ -21,9 +24,13 @@ import lk.ijse.dep.pos.util.OrderTM;
 
 public class OrderBOImpl implements OrderBO {
 
+  OrderDAO orderDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER);
+  ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+  OrderDetailDAO orderDetailDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER_DETAIL);
+  QueryDAO queryDAO = DAOFactory.getInstance().getDAO(DAOType.QUERY);
+
   public  String getNewOrderId() throws Exception{
 
-      OrderDAO orderDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER);
       String lastOrderId = orderDAO.getLastOrderId();
       if (lastOrderId == null) {
         return "OD001";
@@ -48,16 +55,14 @@ public class OrderBOImpl implements OrderBO {
     Connection connection = DBConnection.getInstance().getConnection();
     try {
       connection.setAutoCommit(false);
-      OrderDAO orderDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER);
       boolean result = orderDAO.save(new Order(order.getOrderId(),
-          Date.valueOf(order.getOrderDate()),
+         order.getOrderDate(),
           order.getCustomerId()));
       if (!result) {
         connection.rollback();
         return false;
       }
       for (OrderDetailTM orderDetail : orderDetails) {
-        OrderDetailDAO orderDetailDAO = DAOFactory.getInstance().getDAO(DAOType.ORDER_DETAIL);
         result = orderDetailDAO.save(new OrderDetail(
             order.getOrderId(), orderDetail.getCode(),
             orderDetail.getQty(), BigDecimal.valueOf(orderDetail.getUnitPrice())
@@ -67,7 +72,7 @@ public class OrderBOImpl implements OrderBO {
           return false;
         }
 
-        ItemDAO itemDAO = DAOFactory.getInstance().getDAO(DAOType.ITEM);
+
         Item item = itemDAO.find(orderDetail.getCode());
         item.setQtyOnHand(item.getQtyOnHand() - orderDetail.getQty());
         result = itemDAO.update(item);
@@ -97,6 +102,12 @@ public class OrderBOImpl implements OrderBO {
 
   @Override
   public List<OrderTM> getAllOrders() throws Exception {
-    return null;
+    List<CustomEntity> odl = queryDAO.getOrderDetail();
+    List<OrderTM> orderDetailsList = new ArrayList<>();
+    for (CustomEntity orderDetails : odl) {
+      orderDetailsList.add(new OrderTM(orderDetails.getOrderId(),orderDetails.getOrderDate(),orderDetails.getCustomerId(),
+              orderDetails.getCustomerName(),orderDetails.getTotal()));
+    }
+    return orderDetailsList;
   }
 }

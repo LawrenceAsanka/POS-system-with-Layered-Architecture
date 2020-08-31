@@ -3,10 +3,10 @@ package lk.ijse.dep.pos.controller;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
-import lk.ijse.dep.pos.db.DBConnection;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -19,21 +19,28 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import lk.ijse.dep.pos.business.BOFactory;
+import lk.ijse.dep.pos.business.BOType;
+import lk.ijse.dep.pos.business.CustomerBO;
+import lk.ijse.dep.pos.business.ItemBO;
+import lk.ijse.dep.pos.business.custom.OrderBO;
+import lk.ijse.dep.pos.db.DBConnection;
 import lk.ijse.dep.pos.util.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PlaceOrderFormController {
     static ArrayList<Order> ordersDB = new ArrayList<>();
-
+    private final CustomerBO customerBO = BOFactory.getInstance().getBO(BOType.CUSTOMER);
+    private final ItemBO itemBO = BOFactory.getInstance().getBO(BOType.ITEM);
+    private final OrderBO orderBO = BOFactory.getInstance().getBO(BOType.ORDER);
     public JFXTextField txtDescription;
     public JFXTextField txtCustomerName;
     public JFXTextField txtQtyOnHand;
@@ -149,36 +156,29 @@ public class PlaceOrderFormController {
     }
 
     private void loadAllItems() {
+        ObservableList<ItemTM> items = cmbItemCode.getItems();
+        items.clear();
+        List<ItemTM> allItems = null;
         try {
-            Statement stm = DBConnection.getInstance().getConnection().createStatement();
-            ResultSet rst = stm.executeQuery("SELECT * FROM Item");
-            ObservableList<ItemTM> items = cmbItemCode.getItems();
-            while (rst.next()) {
-                String code = rst.getString(1);
-                String description = rst.getString(2);
-                double unitPrice = rst.getDouble(3);
-                int qtyOnHand = rst.getInt(4);
-                items.add(new ItemTM(code, description, qtyOnHand, unitPrice));
-            }
-        } catch (SQLException e) {
+            allItems = itemBO.getAllItems();
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        ObservableList<ItemTM> itemObservableList = FXCollections.observableArrayList(allItems);
+        cmbItemCode.setItems(itemObservableList);
     }
 
     private void loadAllCustomers() {
+        ObservableList<CustomerTM> customers = cmbCustomerId.getItems();
+        customers.clear();
+        List<CustomerTM> allCustomers = null;
         try {
-            Statement stm = DBConnection.getInstance().getConnection().createStatement();
-            ResultSet rst = stm.executeQuery("SELECT * FROM Customer");
-            ObservableList<CustomerTM> customers = cmbCustomerId.getItems();
-            while (rst.next()) {
-                String id = rst.getString(1);
-                String name = rst.getString(2);
-                String address = rst.getString(3);
-                customers.add(new CustomerTM(id, name, address));
-            }
-        } catch (SQLException e) {
+            allCustomers = customerBO.getAllCustomers();
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        ObservableList<CustomerTM> customerObservableList = FXCollections.observableArrayList(allCustomers);
+        cmbCustomerId.setItems(customerObservableList);
     }
 
     private void calculateQtyOnHand(ItemTM item) {
@@ -191,10 +191,6 @@ public class PlaceOrderFormController {
                 break;
             }
         }
-    }
-
-    public void btnAddNew_OnAction(ActionEvent actionEvent) {
-
     }
 
     public void btnAdd_OnAction(ActionEvent actionEvent) {
@@ -280,46 +276,25 @@ public class PlaceOrderFormController {
 
         // Let's save the order
         //int orderId = Integer.parseInt(lblId.getText().replace("OD", ""));
+        boolean result = false;
         try {
-            PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement("INSERT INTO `Order` VALUES (?,?,?)");
-            pstm.setObject(1, lblId.getText());
-            pstm.setObject(2, LocalDate.now());
-            pstm.setObject(3, cmbCustomerId.getValue().getId());
-            int affectedRows = pstm.executeUpdate();
-            if (affectedRows == 0) {
-                new Alert(Alert.AlertType.ERROR, "Mudalali wade awul wage", ButtonType.OK).show();
-                return;
-            }
-        } catch (SQLException e) {
+            result = orderBO.placeOrder(new OrderTM(lblId.getText(), Date.valueOf(LocalDate.now()), cmbCustomerId.getValue().getId(), cmbCustomerId.getValue().getName(), new BigDecimal(0)),
+                    tblOrderDetails.getItems());
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        ObservableList<OrderDetailTM> olOrderDetails = tblOrderDetails.getItems();
-        try {
-            PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement("INSERT INTO OrderDetail VALUES (?,?,?,?)");
-            for (OrderDetailTM orderDetail : olOrderDetails) {
-                // Let's update the stock
-                updateStockQty(orderDetail.getCode(), orderDetail.getQty());
-                pstm.setObject(1, lblId.getText());
-                pstm.setObject(2, orderDetail.getCode());
-                pstm.setObject(3, orderDetail.getQty());
-                pstm.setObject(4, orderDetail.getUnitPrice());
-                int affectedRows = pstm.executeUpdate();
-                if (affectedRows == 0) {
-                    new Alert(Alert.AlertType.ERROR, "Order Detail Ekak Awul Giya", ButtonType.OK).show();
-                    return;
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (!result) {
+            new Alert(Alert.AlertType.ERROR, "Mudalali wade awul wage", ButtonType.OK).show();
+            return;
         }
-
         new Alert(Alert.AlertType.INFORMATION, "Mudalali wade goda", ButtonType.OK).showAndWait();
 
         tblOrderDetails.getItems().clear();
         txtQty.clear();
         cmbCustomerId.getSelectionModel().clearSelection();
         cmbItemCode.getSelectionModel().clearSelection();
+        loadAllItems();
         calculateTotal();
         generateOrderId();
     }
@@ -338,16 +313,6 @@ public class PlaceOrderFormController {
             e.printStackTrace();
         }
 
-    }
-
-    @FXML
-    private void navigateToHome(MouseEvent event) throws IOException {
-        URL resource = this.getClass().getResource("/lk/ijse/dep/pos/view/MainForm.fxml");
-        Parent root = FXMLLoader.load(resource);
-        Scene scene = new Scene(root);
-        Stage primaryStage = (Stage) (this.root.getScene().getWindow());
-        primaryStage.setScene(scene);
-        primaryStage.centerOnScreen();
     }
 
     public void txtQty_OnAction(ActionEvent actionEvent) {
@@ -370,32 +335,11 @@ public class PlaceOrderFormController {
 
     private void generateOrderId() {
         // Generate a new id
-        int maxId = 0;
-        /*for (Order order : ordersDB) {
-            int id = Integer.parseInt(order.getId().replace("OD", ""));
-            if (id > maxId) {
-                maxId = id;
-            }
-        }*/
         try {
-            Statement stm = DBConnection.getInstance().getConnection().createStatement();
-            ResultSet rst = stm.executeQuery("SELECT id FROM `Order` ORDER BY id DESC LIMIT 1");
-            if (rst.next()) {
-                maxId = Integer.parseInt(rst.getString(1).replace("OD",""));
-            }
-        } catch (SQLException e) {
+            lblId.setText(orderBO.getNewOrderId());
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        maxId = maxId + 1;
-        String id = "";
-        if (maxId < 10) {
-            id = "OD00" + maxId;
-        } else if (maxId < 100) {
-            id = "OD0" + maxId;
-        } else {
-            id = "OD" + maxId;
-        }
-        lblId.setText(id);
     }
 
     void initializeWithSearchOrderForm(String orderId) {
@@ -443,4 +387,14 @@ public class PlaceOrderFormController {
         }
     }
 
+
+    @FXML
+    private void navigateToHome(MouseEvent event) throws IOException {
+        URL resource = this.getClass().getResource("/lk/ijse/dep/pos/view/MainForm.fxml");
+        Parent root = FXMLLoader.load(resource);
+        Scene scene = new Scene(root);
+        Stage primaryStage = (Stage) (this.root.getScene().getWindow());
+        primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
+    }
 }

@@ -100,7 +100,6 @@ public class ManageCustomerFormController implements Initializable {
     }
 
     private void loadAllCustomers() {
-
         ObservableList<CustomerTM> customers = tblCustomers.getItems();
         customers.clear();
         List<CustomerTM> allCustomers = null;

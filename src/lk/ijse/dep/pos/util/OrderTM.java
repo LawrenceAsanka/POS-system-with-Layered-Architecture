@@ -1,18 +1,19 @@
 package lk.ijse.dep.pos.util;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.sql.Date;
 
 public class OrderTM {
     private String orderId;
-    private LocalDate orderDate;
+    private Date orderDate;
     private String customerId;
     private String customerName;
-    private double orderTotal;
+    private BigDecimal orderTotal;
 
     public OrderTM() {
     }
 
-    public OrderTM(String orderId, LocalDate orderDate, String customerId, String customerName, double orderTotal) {
+    public OrderTM(String orderId, Date orderDate, String customerId, String customerName, BigDecimal orderTotal) {
         this.orderId = orderId;
         this.orderDate = orderDate;
         this.customerId = customerId;
@@ -28,11 +29,11 @@ public class OrderTM {
         this.orderId = orderId;
     }
 
-    public LocalDate getOrderDate() {
+    public Date getOrderDate() {
         return orderDate;
     }
 
-    public void setOrderDate(LocalDate orderDate) {
+    public void setOrderDate(Date orderDate) {
         this.orderDate = orderDate;
     }
 
@@ -52,11 +53,11 @@ public class OrderTM {
         this.customerName = customerName;
     }
 
-    public double getOrderTotal() {
+    public BigDecimal getOrderTotal() {
         return orderTotal;
     }
 
-    public void setOrderTotal(double orderTotal) {
+    public void setOrderTotal(BigDecimal orderTotal) {
         this.orderTotal = orderTotal;
     }
 

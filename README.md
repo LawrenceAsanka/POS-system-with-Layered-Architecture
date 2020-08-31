@@ -1,4 +1,4 @@
-# POS system with layered architecture
+# POS System with Layered Architecture
 
 POS System is a javaFX project for dealing with daily routing
 

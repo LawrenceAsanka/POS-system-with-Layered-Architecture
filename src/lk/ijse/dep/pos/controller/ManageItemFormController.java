@@ -6,12 +6,9 @@
 package lk.ijse.dep.pos.controller;
 
 import com.jfoenix.controls.JFXTextField;
-import lk.ijse.dep.pos.business.BOFactory;
-import lk.ijse.dep.pos.business.BOType;
-import lk.ijse.dep.pos.business.ItemBO;
-import lk.ijse.dep.pos.db.DBConnection;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -27,14 +24,18 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import lk.ijse.dep.pos.business.BOFactory;
+import lk.ijse.dep.pos.business.BOType;
+import lk.ijse.dep.pos.business.ItemBO;
+import lk.ijse.dep.pos.db.DBConnection;
 import lk.ijse.dep.pos.util.ItemTM;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -45,6 +46,7 @@ import java.util.ResourceBundle;
  */
 public class ManageItemFormController implements Initializable {
 
+    private final ItemBO itemBO = BOFactory.getInstance().getBO(BOType.ITEM);
     public JFXTextField txtCode;
     public JFXTextField txtDescription;
     public JFXTextField txtQtyOnHand;
@@ -56,8 +58,7 @@ public class ManageItemFormController implements Initializable {
     private Button btnDelete;
     @FXML
     private AnchorPane root;
-
-    private ItemBO itemBO = BOFactory.getInstance().getBO(BOType.ITEM);
+    private boolean result;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -106,33 +107,20 @@ public class ManageItemFormController implements Initializable {
     }
 
     private void loadAllItems() {
+        ObservableList<ItemTM> items = tblItems.getItems();
+        items.clear();
+        List<ItemTM> allItems = null;
         try {
-            Statement stm = DBConnection.getInstance().getConnection().createStatement();
-            ResultSet rst = stm.executeQuery("SELECT * FROM Item");
-            ObservableList<ItemTM> items = tblItems.getItems();
-            items.clear();
-            while (rst.next()) {
-                String code = rst.getString(1);
-                String description = rst.getString(2);
-                double unitPrice = rst.getDouble(3);
-                int qtyOnHand = rst.getInt(4);
-                items.add(new ItemTM(code, description, qtyOnHand, unitPrice));
-            }
-        } catch (SQLException e) {
+            allItems = itemBO.getAllItems();
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        ObservableList<ItemTM> itemObservableList = FXCollections.observableArrayList(allItems);
+        tblItems.setItems(itemObservableList);
+
     }
 
-    @FXML
-    private void navigateToHome(MouseEvent event) throws IOException {
-        URL resource = this.getClass().getResource("/lk/ijse/dep/pos/view/MainForm.fxml");
-        Parent root = FXMLLoader.load(resource);
-        Scene scene = new Scene(root);
-        Stage primaryStage = (Stage) (this.root.getScene().getWindow());
-        primaryStage.setScene(scene);
-        primaryStage.centerOnScreen();
-    }
-
+    //Save and update item
     @FXML
     private void btnSave_OnAction(ActionEvent event) {
 
@@ -152,18 +140,13 @@ public class ManageItemFormController implements Initializable {
         }
 
         if (btnSave.getText().equals("Save")) {
-
             try {
-                PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement("INSERT INTO Item VALUES (?,?,?,?)");
-                pstm.setObject(1, txtCode.getText());
-                pstm.setObject(2, txtDescription.getText());
-                pstm.setObject(3, qtyOnHand);
-                pstm.setObject(4, unitPrice);
-                if (pstm.executeUpdate() == 0) {
-                    new Alert(Alert.AlertType.ERROR, "Failed to save the item", ButtonType.OK).show();
-                }
-            } catch (SQLException e) {
+                result = itemBO.saveItem(txtCode.getText(), txtDescription.getText(), qtyOnHand, unitPrice);
+            } catch (Exception e) {
                 e.printStackTrace();
+            }
+            if (!result) {
+                new Alert(Alert.AlertType.ERROR, "Failed to save the item", ButtonType.OK).show();
             }
 
             btnAddNew_OnAction(event);
@@ -171,18 +154,13 @@ public class ManageItemFormController implements Initializable {
             ItemTM selectedItem = tblItems.getSelectionModel().getSelectedItem();
 
             try {
-                PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement("UPDATE Item SET description=?, unitPrice=?, qtyOnHand=? WHERE code=?");
-                pstm.setObject(1, txtDescription.getText());
-                pstm.setObject(2, unitPrice);
-                pstm.setObject(3, qtyOnHand);
-                pstm.setObject(4, selectedItem.getCode());
-                if (pstm.executeUpdate() == 0) {
-                    new Alert(Alert.AlertType.ERROR, "Failed to update the Item").show();
-                }
-            } catch (SQLException e) {
+                result = itemBO.updateItem(txtDescription.getText(), qtyOnHand, unitPrice, selectedItem.getCode());
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            if (!result) {
+                new Alert(Alert.AlertType.ERROR, "Failed to update the Item").show();
+            }
 
             tblItems.refresh();
             btnAddNew_OnAction(event);
@@ -190,6 +168,7 @@ public class ManageItemFormController implements Initializable {
         loadAllItems();
     }
 
+    //delete item
     @FXML
     private void btnDelete_OnAction(ActionEvent event) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
@@ -199,18 +178,19 @@ public class ManageItemFormController implements Initializable {
         if (buttonType.get() == ButtonType.YES) {
             ItemTM selectedItem = tblItems.getSelectionModel().getSelectedItem();
             try {
-                PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement("DELETE FROM Item WHERE code=?");
-                pstm.setObject(1, selectedItem.getCode());
-                if (pstm.executeUpdate() == 0) {
-                    new Alert(Alert.AlertType.ERROR, "Failed to delete the item", ButtonType.OK).show();
-                } else {
-                    tblItems.getItems().remove(selectedItem);
-                    tblItems.getSelectionModel().clearSelection();
-                }
-            } catch (SQLException e) {
+                result = itemBO.deleteItem(selectedItem.getCode());
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+            if (!result) {
+                new Alert(Alert.AlertType.ERROR, "Failed to delete the item", ButtonType.OK).show();
+            } else {
+                tblItems.getItems().remove(selectedItem);
+                tblItems.getSelectionModel().clearSelection();
+            }
+
         }
+        btnAddNew_OnAction(event);
     }
 
     @FXML
@@ -250,4 +230,14 @@ public class ManageItemFormController implements Initializable {
 
     }
 
+
+    @FXML
+    private void navigateToHome(MouseEvent event) throws IOException {
+        URL resource = this.getClass().getResource("/lk/ijse/dep/pos/view/MainForm.fxml");
+        Parent root = FXMLLoader.load(resource);
+        Scene scene = new Scene(root);
+        Stage primaryStage = (Stage) (this.root.getScene().getWindow());
+        primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
+    }
 }

@@ -69,7 +69,7 @@ public class ItemDAOImpl implements ItemDAO {
             pstm.setObject(4, item.getQtyOnHand());*/
       return CrudUtil
           .execute("INSERT INTO Item VALUES (?,?,?,?)", item.getCode(), item.getDescription(), item.getUnitPrice(),
-              item.getCode());
+              item.getQtyOnHand());
 
   }
 

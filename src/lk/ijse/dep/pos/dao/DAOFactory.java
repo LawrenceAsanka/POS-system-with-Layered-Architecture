@@ -22,9 +22,9 @@ public class DAOFactory {
       case CUSTOMER:
         return (T) new CustomerDAOImpl();
       case ITEM:
-        return (T) new OrderDAOImpl();
-      case ORDER:
         return (T) new ItemDAOImpl();
+      case ORDER:
+        return (T) new OrderDAOImpl();
       case ORDER_DETAIL:
         return (T) new OrderDetailDAOImpl();
       case QUERY:

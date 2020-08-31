@@ -17,7 +17,7 @@ In this **POS System** has all the functionalities of a POS system, like custome
 
 ## Database
 
-Find Database Configuration From src/lk.ijse.dep.pos.db.DBConnection,and set your Database name,user name and password.
+Find Database Configuration From src/lk.ijse.dep.pos.db.DBConnection and set your Database name,user name and password.
 
 ## Contributing
 

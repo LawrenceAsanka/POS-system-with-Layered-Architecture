@@ -10,7 +10,7 @@ This project uses a GUI library
 
 ## Database
 
-Find Database Configuration From src/db, & set your Database Password
+Find Database Configuration From src/lk.ijse.dep.pos.db, & set your Database Password
 
 
 ## Contributing
